@@ -36,10 +36,8 @@ jobs:
           echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -cr '
             .target
             | to_entries
-            | map({
-                image: .key,
-                platform: .value.platforms
-              })
+            | map({ key: .key, value: { platform: .value.platforms } })
+            | from_entries
           ')" >> $GITHUB_OUTPUT
 
       - name: Show matrix
