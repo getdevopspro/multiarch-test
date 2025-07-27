@@ -80,6 +80,7 @@ jobs:
       - name: Do not use tags in bake meta for this step
         run: |
           jq '.target |= with_entries(.value.tags |= map(sub(":.*$"; "")))' < ${{ runner.temp }}/bake-meta.json > ${{ runner.temp }}/bake-meta-no-tag.json
+          cat ${{ runner.temp }}/bake-meta-no-tag.json
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
