@@ -33,11 +33,12 @@ jobs:
       - name: Create matrix
         id: platforms
         run: |
-          echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -cr '
+          echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -r '
             .target
-            | to_entries
-            | map({ key: .key, value: { platform: .value.platforms } })
-            | from_entries
+            | to_entries[]
+            | . as $target
+            | $target.value.platforms[]
+            | "\($target.key)-\(. | split("/")[1])\n  image: \($target.key)\n  platform: \(. )"
           ')" >> $GITHUB_OUTPUT
 
       - name: Show matrix
