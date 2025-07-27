@@ -38,7 +38,7 @@ jobs:
             | to_entries
             | map({
                 image: .key,
-                platforms: .value.platforms
+                platform: .value.platforms
               })
           ')" >> $GITHUB_OUTPUT
 
@@ -70,7 +70,8 @@ jobs:
       - prepare
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - name: Prepare
         run: |
