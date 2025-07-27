@@ -33,11 +33,7 @@ jobs:
       - name: Create matrix
         id: platforms
         run: |
-          echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -cr '
-            [ .target | to_entries[] as $t | $t.value.platforms[] |
-              { "\($t.key)-\(gsub("/"; "-"))": { image: $t.key, platform: . } }
-            ] | add
-          ')" >> $GITHUB_OUTPUT
+          echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -cr '[.target | to_entries[] as $t | $t.value.platforms[] | {name: $t.key, platform: .}]')" >> $GITHUB_OUTPUT
 
       - name: Show matrix
         run: |
@@ -62,17 +58,17 @@ jobs:
           retention-days: 1
 
   build:
-    runs-on: ${{ matrix.imageplatform.platform == 'linux/arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.image.platform == 'linux/arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs:
       - prepare
     strategy:
       fail-fast: false
       matrix:
-        imageplatform: ${{ fromJson(needs.prepare.outputs.matrix) }}
+        image: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - name: Prepare
         run: |
-          platform=${{ matrix.imageplatform.platform }}
+          platform=${{ matrix.image.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
       - name: Download meta bake definition
@@ -104,7 +100,7 @@ jobs:
           targets: ${{ env.BAKE_TARGET }}
           set: |
             *.tags=${{ env.REGISTRY_IMAGE }}
-            *.platform=${{ matrix.imageplatform.platform }}
+            *.platform=${{ matrix.image.platform }}
             *.output=type=image,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
