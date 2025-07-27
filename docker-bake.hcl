@@ -15,13 +15,9 @@ variable "APP2_IMAGE_NAME" {
   default = "ghcr.io/${lower(GITHUB_REPOSITORY_OWNER)}/app2"
 }
 
-variable "NO_TAG" {
-  default = false
-}
-
 function "generate_tags" {
   params = [image, tags]
-  result = NO_TAG ? [image] : formatlist("%s:%s", image, tags)
+  result = formatlist("%s:%s", image, tags)
 }
 
 group "build" {
