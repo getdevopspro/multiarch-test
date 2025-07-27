@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+    paths-ignore:
+      - "**.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    uses: getdevopspro/github-actions/.github/workflows/release.yml@v0.2.22
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      version-justfile: justfile
+      just-install: true
+      git-add-files: justfile
+      git-user-name: cleanlogix-cibot
+      git-user-email: 193524276+cleanlogix-cibot@users.noreply.github.com
+      registry-username: ${{ github.actor }}
+      test-command: just unit-test system-test
