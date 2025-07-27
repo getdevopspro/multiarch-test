@@ -96,7 +96,7 @@ jobs:
           files: |
             ./docker-bake.hcl
             cwd://${{ runner.temp }}/bake-meta.json
-          targets: image
+          targets: ${{ env.BAKE_TARGET }}
           set: |
             *.tags=${{ env.REGISTRY_IMAGE }}
             *.platform=${{ matrix.platform }}
