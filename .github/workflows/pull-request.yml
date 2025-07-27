@@ -149,13 +149,15 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          jq -s 'add' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/all.json
-          cat ${{ runner.temp }}/all.json
-          JSON_FILE=${{ runner.temp }}/all.json
+          ls -al ${{ runner.temp }}/digests
+          cat ${{ runner.temp }}/digests/*
+          jq -s 'add' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/digests/all.json
+          cat ${{ runner.temp }}/digests/all.json
+          JSON_FILE=${{ runner.temp }}/digests/.json
           for key in $(jq -r 'keys[]' "$JSON_FILE"); do
             image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
             echo "Creating manifest for image: $image_name"
-            echo "Tags: $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${image_name}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json)"
+            echo "Tags: $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${image_name}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json)g"
             docker buildx imagetools create \
               $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${image_name}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
               $(jq -r ".\"$key\".digests[]" "$JSON_FILE" | while read -r digest; do echo "${image_name}@${digest} "; done)
