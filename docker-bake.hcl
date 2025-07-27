@@ -22,10 +22,6 @@ function "generate_tags" {
 
 group "build" {
   targets = ["build-app1", "build-app2"]
-  platforms = [
-    // "linux/amd64",
-    "linux/arm64",
-  ]
 }
 
 target "docker-metadata-action" {}
