@@ -34,17 +34,18 @@ jobs:
         id: platforms
         run: |
           echo "matrix=$(docker buildx bake ${{ env.BAKE_TARGET }} --print | jq -cr '
-            .target
-            | to_entries
-            | map(
-                . as $t
-                | $t.value.platforms[]
-                | {
-                    name: ($t.key + "-" + (split("/")[0] + "-" + split("/")[1])),
-                    image: $t.key,
-                    platform: .
-                  }
-              )
+            .target as $targets |
+            [
+              $targets | to_entries[] |
+              . as $t |
+              $t.value.platforms[] |
+              {
+                ( ($t.key + "-" + (. | gsub("/"; "-"))) ): {
+                  image: $t.key,
+                  platform: .
+                }
+              }
+            ] | add
           ')" >> $GITHUB_OUTPUT
 
       - name: Show matrix
