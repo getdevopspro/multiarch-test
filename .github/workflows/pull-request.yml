@@ -108,10 +108,8 @@ jobs:
       - name: Export container digests
         run: |
           echo '${{ steps.bake.outputs.metadata }}' \
-            | jq -r 'to_entries[]
-            | select(.value["containerimage.digest"])
-            | "\(.key)/\(.value["containerimage.digest"]|sub("^sha256:";""))"
-          ' | xargs -I{} sh -c 'mkdir -p "${1%/*}" && touch "${1}"' _ {}
+            | jq -r 'to_entries[]|select(.value["containerimage.digest"])|"\(.key)/\(.value["containerimage.digest"]|sub("^sha256:";""))"'
+            | xargs -I{} sh -c 'mkdir -p "$RUNNER_TEMP/digests/${1%/*}" && touch "$RUNNER_TEMP/digests/${1}"' _ {}
           cat "${{ runner.temp }}/digests/${digest#sha256:}"
           ls -al ${{ runner.temp }}/digests
 
