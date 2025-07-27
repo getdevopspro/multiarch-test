@@ -108,7 +108,7 @@ jobs:
       - name: Export container digests
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          echo '${{ steps.bake.outputs.metadata }}' | jq 'with_entries(select(.key | startswith("build-"))) | map_values({name: ."image.name", digests: [."containerimage.digest"]})' > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
+          echo '${{ steps.bake.outputs.metadata }}' | jq 'with_entries(select(.value["containerimage.digest"]?) | .value |= {name: .["image.name"], digests:[.["containerimage.digest"]]})' > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
