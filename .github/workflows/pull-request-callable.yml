@@ -130,10 +130,7 @@ jobs:
       - name: Export container digests
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          echo "${{ steps.bake.outputs.metadata }}" | \
-            jq 'with_entries(select(.value["containerimage.digest"]?) |
-              .value |= {name: .["image.name"], digests:[.["containerimage.digest"]]})' \
-            > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
+          echo '${{ steps.bake.outputs.metadata }}' | jq 'with_entries(select(.value["containerimage.digest"]?) | .value |= {name: .["image.name"], digests:[.["containerimage.digest"]]})' > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
@@ -173,30 +170,30 @@ jobs:
       - name: Create manifest lists & push
         working-directory: ${{ runner.temp }}/digests
         run: |
+          JSON_FILE=${{ runner.temp }}/digests/all.json
           jq -s '
-            reduce .[] as $doc ({}; reduce ($doc|to_entries[]) as $kv (
-              .;
-              .[$kv.key].name    = $kv.value.name
-              | .[$kv.key].digests = ((.[$kv.key].digests // []) + $kv.value.digests)
-            ))
-          ' *.json > all.json
-
-          for key in $(jq -r 'keys[]' all.json); do
-            image=$(jq -r ".\"$key\".name" all.json)
-            digests=$(jq -r ".\"$key\".digests[]" all.json | \
-              xargs -I{} echo "${image}@{}")
-            tags=$(jq -cr '(.target."docker-metadata-action".tags // []) |
-              map("-t '${image}':" + sub(".*:"; "")) | join(" ")' \
-              ../bake-meta.json)
-            docker buildx imagetools create $tags $digests
+            reduce .[] as $doc ({};
+              reduce ($doc|to_entries[]) as $kv (
+                .;
+                .[$kv.key].name    = $kv.value.name
+                | .[$kv.key].digests = ((.[$kv.key].digests // []) + $kv.value.digests)
+              )
+            )
+          ' ${{ runner.temp }}/digests/*.json > ${JSON_FILE}
+          for key in $(jq -r 'keys[]' "$JSON_FILE"); do
+            image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
+            image_digests=$(jq -r ".\"$key\".digests[]" "$JSON_FILE" | while read -r digest; do echo "${image_name}@${digest} "; done)
+            image_tags=$(jq -cr '(.target."docker-metadata-action".tags // [] ) | map("-t '${image_name}':" + sub(".*:"; "")) | join(" ")' ${{ runner.temp }}/bake-meta.json)
+            docker buildx imagetools create \
+              ${image_tags} \
+              ${image_digests}
           done
 
       - name: Inspect published images
         working-directory: ${{ runner.temp }}/digests
         run: |
-          version=$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' \
-            ../bake-meta.json)
-          for key in $(jq -r 'keys[]' all.json); do
-            image=$(jq -r ".\"$key\".name" all.json)
-            docker buildx imagetools inspect "${image}:${version}"
+          JSON_FILE=${{ runner.temp }}/digests/all.json
+          for key in $(jq -r 'keys[]' "$JSON_FILE"); do
+            image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
+            docker buildx imagetools inspect ${image_name}:$(jq -r '.target."docker-metadata-action".args.DOCKER_META_VERSION' ${{ runner.temp }}/bake-meta.json)
           done
