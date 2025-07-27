@@ -105,11 +105,13 @@ jobs:
             *.platform=${{ matrix.platform }}
             *.output=type=image,push-by-digest=true,name-canonical=true,push=true
 
-      - name: Export digest
+      - name: Export container digests
         run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest=$(echo '${{ steps.bake.outputs.metadata }}' | jq -r ".${{ env.BAKE_TARGET }}.\"containerimage.digest\"")
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          echo '${{ steps.bake.outputs.metadata }}' \
+            | jq -r 'to_entries[]
+            | select(.value["containerimage.digest"])
+            | "\(.key)/\(.value["containerimage.digest"]|sub("^sha256:";""))"
+          ' | xargs -I{} sh -c 'mkdir -p "${1%/*}" && touch "${1}"' _ {}
           cat "${{ runner.temp }}/digests/${digest#sha256:}"
           ls -al ${{ runner.temp }}/digests
 
