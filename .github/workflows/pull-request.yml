@@ -105,7 +105,7 @@ jobs:
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          digest="${{ fromJSON(steps.bake.outputs.metadata)['containerimage.digest'] }}"
+          digest=$(echo '${{ steps.bake.outputs.metadata }}' | jq -r ".${{ env.BAKE_TARGET }}.\"containerimage.digest\"")
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
