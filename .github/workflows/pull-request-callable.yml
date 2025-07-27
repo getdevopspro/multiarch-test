@@ -90,7 +90,6 @@ jobs:
     steps:
       - name: Prepare env
         run: |
-          ls -al
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
@@ -130,7 +129,6 @@ jobs:
 
       - name: Export container digests
         run: |
-          ls -al
           mkdir -p ${{ runner.temp }}/digests
           echo '${{ steps.bake.outputs.metadata }}' | jq 'with_entries(select(.value["containerimage.digest"]?) | .value |= {name: .["image.name"], digests:[.["containerimage.digest"]]})' > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
 
