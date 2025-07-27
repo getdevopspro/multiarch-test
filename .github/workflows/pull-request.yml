@@ -151,7 +151,15 @@ jobs:
         run: |
           ls -al ${{ runner.temp }}/digests
           cat ${{ runner.temp }}/digests/*
-          jq -s 'add' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/digests/all.json
+          jq -s '
+            reduce .[] as $doc ({};
+              reduce ($doc|to_entries[]) as $kv (
+                .;
+                .[$kv.key].name    = $kv.value.name
+                | .[$kv.key].digests = ((.[$kv.key].digests // []) + $kv.value.digests)
+              )
+            )
+          ' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/digests/all.json
           cat ${{ runner.temp }}/digests/all.json
           JSON_FILE=${{ runner.temp }}/digests/all.json
           for key in $(jq -r 'keys[]' "$JSON_FILE"); do
