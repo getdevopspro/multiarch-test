@@ -153,7 +153,7 @@ jobs:
           cat ${{ runner.temp }}/digests/*
           jq -s 'add' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/digests/all.json
           cat ${{ runner.temp }}/digests/all.json
-          JSON_FILE=${{ runner.temp }}/digests/.json
+          JSON_FILE=${{ runner.temp }}/digests/all.json
           for key in $(jq -r 'keys[]' "$JSON_FILE"); do
             image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
             echo "Creating manifest for image: $image_name"
