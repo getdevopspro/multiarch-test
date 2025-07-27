@@ -17,9 +17,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Create matrix
       id: platforms
       shell: bash
@@ -38,6 +35,7 @@ runs:
         images: ${{ inputs.registry-image }}
 
     - name: Rename meta file
+      shell: bash
       run: |
         mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
 
