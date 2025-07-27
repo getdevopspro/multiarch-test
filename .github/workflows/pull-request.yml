@@ -110,6 +110,8 @@ jobs:
           mkdir -p ${{ runner.temp }}/digests
           digest=$(echo '${{ steps.bake.outputs.metadata }}' | jq -r ".${{ env.BAKE_TARGET }}.\"containerimage.digest\"")
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          cat "${{ runner.temp }}/digests/${digest#sha256:}"
+          ls -al ${{ runner.temp }}/digests
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
