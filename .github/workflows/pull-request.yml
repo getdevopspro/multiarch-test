@@ -70,8 +70,7 @@ jobs:
       - prepare
     strategy:
       fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - name: Prepare
         run: |
