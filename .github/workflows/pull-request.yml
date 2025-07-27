@@ -37,8 +37,13 @@ jobs:
             .target
             | to_entries
             | map(
-                .value.platforms[]
-                | { image: . as $platform | ($platform | split("/") | join("-")) | "\(input_filename)-\(.)" }?
+                . as $t
+                | $t.value.platforms[]
+                | {
+                    name: ($t.key + "-" + (split("/")[0] + "-" + split("/")[1])),
+                    image: $t.key,
+                    platform: .
+                  }
               )
           ')" >> $GITHUB_OUTPUT
 
