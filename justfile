@@ -1,6 +1,6 @@
 # A beautiful Just collection to make lives easier!
 
-version := "0.0.0"
+version := "0.0.1"
 
 # Unit tests
 [group('test')]
