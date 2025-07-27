@@ -50,6 +50,12 @@ jobs:
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: Prepare matrix & metadata
         id: prepare
         uses: ./.github/actions/buildx-bake/prepare
