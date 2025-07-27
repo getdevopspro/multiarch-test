@@ -166,9 +166,9 @@ jobs:
           for key in $(jq -r 'keys[]' "$JSON_FILE"); do
             image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
             image_digests=$(jq -r ".\"$key\".digests[]" "$JSON_FILE" | while read -r digest; do echo "${image_name}@${digest} "; done)
-            image_tags=$(jq -cr '(.target."docker-metadata-action".tags // [] ) | map("-t ${image_name}:" + sub(".*:"; "")) | join(" ")' ${{ runner.temp }}/bake-meta.json)
+            image_tags=$(jq -cr '(.target."docker-metadata-action".tags // [] ) | map("-t '${image_name}':" + sub(".*:"; "")) | join(" ")' ${{ runner.temp }}/bake-meta.json)
             echo "Creating manifest for image: $image_name"
-            echo "Tags: $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${image_name}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json)"
+            echo "Tags: ${image_tags}"
             docker buildx imagetools create \
               ${image_tags} \
               ${image_digests}
