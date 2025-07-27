@@ -18,6 +18,6 @@ jobs:
     with:
       registry-image: ''
       bake-target: build
-      dockerhub-username: ${{ github.actor }}
+      registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
