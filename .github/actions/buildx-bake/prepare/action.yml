@@ -1,0 +1,50 @@
+name: "Prepare Build Matrix & Metadata"
+description: "Generate platform matrix and bake metadata file for later steps."
+inputs:
+  bake-target:
+    description: 'Target name for `docker buildx bake`'
+    required: false
+    type: string
+    default: 'build'
+  registry-image:
+    description: 'Container registry + image prefix (e.g. ghcr.io/org/repo)'
+    required: false
+    type: string
+outputs:
+  matrix:
+    description: 'JSON array of platforms'
+    value: ${{ steps.platforms.outputs.matrix }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Create matrix
+      id: platforms
+      shell: bash
+      run: |
+        echo "matrix=$(docker buildx bake ${{ inputs.bake-target }} \
+          --print | jq -cr '.target | to_entries | map(.value.platforms[]) | unique')" \
+          >> $GITHUB_OUTPUT
+
+    - name: Show matrix
+      run: echo ${{ steps.platforms.outputs.matrix }}
+
+    - name: Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.registry-image }}
+
+    - name: Rename meta file
+      run: |
+        mv "${{ steps.meta.outputs.bake-file }}" "${{ runner.temp }}/bake-meta.json"
+
+    - name: Upload meta bake file
+      uses: actions/upload-artifact@v4
+      with:
+        name: bake-meta
+        path: ${{ runner.temp }}/bake-meta.json
+        if-no-files-found: error
+        retention-days: 1
