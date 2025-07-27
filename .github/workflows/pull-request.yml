@@ -99,7 +99,7 @@ jobs:
             cwd://${{ runner.temp }}/bake-meta.json
           targets: ${{ env.BAKE_TARGET }}
           set: |
-            {{ env.REGISTRY_IMAGE != '' && '*.tags=' + env.REGISTRY_IMAGE }}
+            ${{ env.REGISTRY_IMAGE != '' && '*.tags=' + env.REGISTRY_IMAGE }}
             *.platform=${{ matrix.platform }}
             *.output=type=image,push-by-digest=true,name-canonical=true,push=true
 
