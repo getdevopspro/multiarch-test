@@ -106,14 +106,9 @@ jobs:
             *.output=type=image,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export container digests
-        working-directory: ${{ runner.temp }}
         run: |
-          mkdir -p digests
-          echo '${{ steps.bake.outputs.metadata }}' \
-            | jq -r 'to_entries[]|select(.value["containerimage.digest"])|"\(.key)/\(.value["containerimage.digest"]|sub("^sha256:";""))"'
-            | xargs -I{} sh -c 'mkdir -p "digests/${1%/*}" && touch "digests/${1}"' _ {}
-          cat digests/*
-          ls -al /digests
+          mkdir -p ${{ runner.temp }}/digests
+          echo '${{ steps.bake.outputs.metadata }}' | jq 'with_entries(select(.key | startswith("build-"))) | map_values({name: ."image.name", digests: [."containerimage.digest"]})' > ${{ runner.temp }}/digests/${{ env.PLATFORM_PAIR }}.json
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
@@ -154,8 +149,15 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${{ env.REGISTRY_IMAGE }}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+          jq -s 'add' ${{ runner.temp }}/digests/*.json > ${{ runner.temp }}/all.json
+          JSON_FILE=${{ runner.temp }}/all.json
+          for key in $(jq -r 'keys[]' "$JSON_FILE"); do
+            image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
+            done
+            docker buildx imagetools create \
+              $(jq -cr '.target."docker-metadata-action".tags | map(select(startswith("${image_name}")) | "-t " + .) | join(" ")' ${{ runner.temp }}/bake-meta.json) \
+              $(jq -r ".\"$key\".digests[]" "$JSON_FILE" | while read -r digest; do echo "${image_name}@${digest} "; done)
+          done
 
       - name: Inspect image
         run: |
