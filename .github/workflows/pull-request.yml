@@ -106,12 +106,14 @@ jobs:
             *.output=type=image,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export container digests
+        working-directory: ${{ runner.temp }}
         run: |
+          mkdir -p digests
           echo '${{ steps.bake.outputs.metadata }}' \
             | jq -r 'to_entries[]|select(.value["containerimage.digest"])|"\(.key)/\(.value["containerimage.digest"]|sub("^sha256:";""))"'
-            | xargs -I{} sh -c 'mkdir -p "$RUNNER_TEMP/digests/${1%/*}" && touch "$RUNNER_TEMP/digests/${1}"' _ {}
-          cat "${{ runner.temp }}/digests/${digest#sha256:}"
-          ls -al ${{ runner.temp }}/digests
+            | xargs -I{} sh -c 'mkdir -p "digests/${1%/*}" && touch "digests/${1}"' _ {}
+          cat digests/*
+          ls -al /digests
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
