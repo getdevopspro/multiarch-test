@@ -24,16 +24,6 @@ group "build" {
   targets = ["build-app1", "build-app2"]
 }
 
-group "build-arm64" {
-  targets   = ["build-app1", "build-app2"]
-  platforms = ["linux/arm64"]
-}
-
-group "build-amd64" {
-  targets   = ["build-app1", "build-app2"]
-  platforms = ["linux/amd64"]
-}
-
 target "docker-metadata-action" {}
 
 target "build-base" {
