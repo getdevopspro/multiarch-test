@@ -420,6 +420,16 @@ jobs:
         with:
           command: ${{ matrix.pre-steps.command }}
 
+  temp:
+    name: Temporary Steps
+    needs: prepare
+    runs-on: ${{ inputs.runner-default }}
+    steps:
+      - name: Run prepare command
+        id: prepare_command
+        shell: bash
+        run: echo "${{ needs.prepare.outputs.image-build-matrix }}"
+
   image-build:
     name: Build Image
     needs: pre-steps
