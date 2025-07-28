@@ -48,7 +48,7 @@ jobs:
   prepare:
     runs-on: ${{ inputs.runner-default }}
     outputs:
-      matrix: ${{ steps.platforms.outputs.matrix }}
+      matrix: ${{ steps.prepare.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
