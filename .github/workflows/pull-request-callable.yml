@@ -66,7 +66,7 @@ jobs:
     runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-arm64 || inputs.runner-default }}
     strategy:
       matrix:
-        platform: ${{ fromJson(needs.iamge-prepare.outputs.matrix) }}
+        platform: ${{ fromJson(needs.image-prepare.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
