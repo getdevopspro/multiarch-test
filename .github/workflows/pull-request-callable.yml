@@ -302,20 +302,20 @@ jobs:
         shell: bash
         run: ${{ inputs.version-command }}
 
-      - name: Set pre-build-commands matrix
+      - name: Set pre-steps matrix
         id: set_pre_matrix
         shell: bash
         run: |
-          MATRIX=$(jq -n --arg name "Lint" --arg cmd "${{ inputs.lint-command }}" \
+          MATRIX=$(jq -cn --arg name "Lint" --arg cmd "${{ inputs.lint-command }}" \
               '[{name: $name, command: $cmd}]')
 
           if [[ -n "${{ inputs.checks-command }}" ]]; then
             # Add checks step if command is provided
-            MATRIX=$(echo $MATRIX | jq --arg name "Checks" --arg cmd "${{ inputs.checks-command }}" \
+            MATRIX=$(echo $MATRIX | jq -c --arg name "Checks" --arg cmd "${{ inputs.checks-command }}" \
               '. + [{name: $name, command: $cmd}]')
           fi
 
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX" >>${GITHUB_OUTPUT}
 
       - name: Upload updated source
         uses: eviden-actions/upload-artifact@v2
@@ -326,7 +326,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  pre-build-commands:
+  pre-steps:
     name: Pre-Build Steps
     needs: version
     runs-on: ${{ inputs.runner-default }}
@@ -353,7 +353,7 @@ jobs:
 
   image-prepare:
     name: Prepare Image Build
-    needs: pre-build-commands
+    needs: pre-steps
     runs-on: ${{ inputs.runner-default }}
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
@@ -427,7 +427,7 @@ jobs:
           registry-username: ${{ inputs.registry-username }}
           registry-password: ${{ secrets.registry-password }}
 
-  post-build-commands:
+  post-steps:
     name: Post-Build Steps
     needs: image-merge
     runs-on: ${{ inputs.runner-default }}
