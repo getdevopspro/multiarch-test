@@ -425,8 +425,11 @@ jobs:
     needs: prepare
     runs-on: ${{ inputs.runner-default }}
     steps:
-      - name: Run prepare command
-        id: prepare_command
+      - name: Show Pre-Build Matrix
+        shell: bash
+        run: echo "${{ needs.prepare.outputs.pre-step-matrix }}"
+
+      - name: Show Image Build Matrix
         shell: bash
         run: echo "${{ needs.prepare.outputs.image-build-matrix }}"
 
