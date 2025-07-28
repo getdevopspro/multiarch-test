@@ -37,7 +37,7 @@ on:
         default: 'ghcr.io'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.job }}
   cancel-in-progress: true
 
 permissions:
@@ -45,7 +45,8 @@ permissions:
   packages: write
 
 jobs:
-  prepare:
+  image-prepare:
+    name: Prepare Image Build
     runs-on: ${{ inputs.runner-default }}
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
@@ -63,8 +64,9 @@ jobs:
           bake-target: ${{ inputs.bake-target }}
           registry-image: ${{ inputs.registry-image }}
 
-  build:
-    needs: prepare
+  image-build:
+    name: Build Image
+    needs: image-prepare
     runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-arm64 || inputs.runner-default }}
     strategy:
       matrix:
@@ -84,7 +86,8 @@ jobs:
           registry-username: ${{ inputs.registry-username }}
           registry-password: ${{ secrets.registry-password }}
 
-  merge:
+  image-merge:
+    name: Merge Image Digests Into Manifest
     needs: build
     runs-on: ${{ inputs.runner-default }}
     steps:
