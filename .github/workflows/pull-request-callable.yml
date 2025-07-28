@@ -87,7 +87,7 @@ jobs:
           registry-password: ${{ secrets.registry-password }}
 
   image-merge:
-    name: Merge Image Digests Into Manifest
+    name: Merge Image Manifest
     needs: image-build
     runs-on: ${{ inputs.runner-default }}
     steps:
