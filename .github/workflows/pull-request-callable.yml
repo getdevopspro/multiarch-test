@@ -75,7 +75,6 @@ jobs:
           bake-target: ${{ inputs.bake-target }}
           registry-image: ${{ inputs.registry }}
           registry-username: ${{ inputs.registry-username }}
-        secrets:
           registry-password: ${{ secrets.registry-password }}
 
   merge:
