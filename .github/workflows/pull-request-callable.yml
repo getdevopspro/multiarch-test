@@ -16,6 +16,14 @@ on:
         required: false
         type: string
         default: 'build'
+      meta-tags:
+        description: 'The tags to add to the image'
+        required: false
+        type: string
+      meta-labels:
+        description: 'The labels to add to the image'
+        required: false
+        type: string
       registry-username:
         description: 'Username for registry login'
         required: true
@@ -59,6 +67,14 @@ jobs:
         with:
           bake-target: ${{ inputs.bake-target }}
           registry-image: ${{ inputs.registry-image }}
+          meta-labels:
+            ${{ inputs.meta-labels }}
+          meta-tags: |
+            type=edge,branch=$repo.default_branch,event=push
+            type=sha,event=push
+            type=ref,event=branch
+            type=ref,event=pr
+            ${{ inputs.meta-tags }}
 
   image-build:
     name: Build Image

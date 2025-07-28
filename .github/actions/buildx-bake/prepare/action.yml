@@ -6,6 +6,12 @@ inputs:
     required: false
     type: string
     default: 'build'
+  meta-tags:
+    description: 'The tags to add to the image'
+    required: false
+  meta-labels:
+    description: 'The labels to add to the image'
+    required: false
   registry-image:
     description: 'Container registry + image prefix (e.g. ghcr.io/org/repo)'
     required: false
@@ -34,6 +40,8 @@ runs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ inputs.registry-image }}
+        tags: ${{ inputs.meta-tags }}
+        labels: ${{ inputs.meta-labels }}
 
     - name: Rename meta file
       shell: bash
