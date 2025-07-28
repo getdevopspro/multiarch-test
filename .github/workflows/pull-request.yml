@@ -20,7 +20,5 @@ jobs:
       registry-image: ''
       bake-target: build
       registry-username: ${{ github.actor }}
-      lint-command: ls
-      test-command: ls
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
