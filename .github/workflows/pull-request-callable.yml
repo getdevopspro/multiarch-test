@@ -1,4 +1,4 @@
-name: Pull Request Build
+name: Pull Request
 
 on:
   workflow_call:
@@ -117,6 +117,141 @@ on:
         required: false
         default: '1.35.0'
         type: string
+      test-command:
+        description: 'The command to run for testing'
+        required: false
+        type: string
+      test-artifact-name:
+        description: 'Name of the artifact to upload for test command'
+        required: false
+        type: string
+      test-artifact-path:
+        description: 'Path to the artifact to upload for test command'
+        required: false
+        type: string
+      test-artifact-overwrite:
+        description: 'Whether to overwrite the artifact if it already exists for test command'
+        required: false
+        type: boolean
+        default: false
+      test-artifact-if-no-files-found:
+        description: 'Action to take if no files are found to upload for test command'
+        required: false
+        type: string
+        default: 'warn'
+      test-artifact-retention-days:
+        description: 'Number of days to retain the artifact for test command'
+        required: false
+        type: number
+        default: 30
+      test-unit-command:
+        description: 'The command to run for unit testing'
+        required: false
+        type: string
+      test-unit-artifact-name:
+        description: 'Name of the artifact to upload for unit test command'
+        required: false
+        type: string
+      test-unit-artifact-path:
+        description: 'Path to the artifact to upload for unit test command'
+        required: false
+        type: string
+      test-unit-artifact-overwrite:
+        description: 'Whether to overwrite the artifact if it already exists for unit test command'
+        required: false
+        type: boolean
+        default: false
+      test-unit-if-no-files-found:
+        description: 'Action to take if no files are found to upload for unit test command'
+        required: false
+        type: string
+        default: 'warn'
+      test-unit-retention-days:
+        description: 'Number of days to retain the artifact for unit test command'
+        required: false
+        type: number
+        default: 30
+      test-integration-command:
+        description: 'The command to run for integration testing'
+        required: false
+        type: string
+      test-integration-artifact-name:
+        description: 'Name of the artifact to upload for integration test command'
+        required: false
+        type: string
+      test-integration-artifact-path:
+        description: 'Path to the artifact to upload for integration test command'
+        required: false
+        type: string
+      test-integration-artifact-overwrite:
+        description: 'Whether to overwrite the artifact if it already exists for integration test command'
+        required: false
+        type: boolean
+        default: false
+      test-integration-if-no-files-found:
+        description: 'Action to take if no files are found to upload for integration test command'
+        required: false
+        type: string
+        default: 'warn'
+      test-integration-retention-days:
+        description: 'Number of days to retain the artifact for integration test command'
+        required: false
+        type: number
+        default: 30
+      test-e2e-command:
+        description: 'The command to run for end-to-end testing'
+        required: false
+        type: string
+      test-e2e-artifact-name:
+        description: 'Name of the artifact to upload for e2e test command'
+        required: false
+        type: string
+      test-e2e-artifact-path:
+        description: 'Path to the artifact to upload for e2e test command'
+        required: false
+        type: string
+      test-e2e-artifact-overwrite:
+        description: 'Whether to overwrite the artifact if it already exists for e2e test command'
+        required: false
+        type: boolean
+        default: false
+      test-e2e-if-no-files-found:
+        description: 'Action to take if no files are found to upload for e2e test command'
+        required: false
+        type: string
+        default: 'warn'
+      test-e2e-retention-days:
+        description: 'Number of days to retain the artifact for e2e test command'
+        required: false
+        type: number
+        default: 30
+      test-coverage-command:
+        description: 'The command to run for test coverage'
+        required: false
+        type: string
+      test-coverage-artifact-name:
+        description: 'Name of the artifact to upload for test coverage command'
+        required: false
+        type: string
+      test-coverage-artifact-path:
+        description: 'Path to the artifact to upload for test coverage command'
+        required: false
+        type: string
+      test-coverage-artifact-overwrite:
+        description: 'Whether to overwrite the artifact if it already exists for test coverage command'
+        required: false
+        type: boolean
+        default: false
+      test-coverage-if-no-files-found:
+        description: 'Action to take if no files are found to upload for test coverage command'
+        required: false
+        type: string
+        default: 'warn'
+      test-coverage-retention-days:
+        description: 'Number of days to retain the artifact for test coverage command'
+        required: false
+        type: number
+        default: 30
 
 permissions:
   contents: read
@@ -285,3 +420,75 @@ jobs:
         with:
           registry-username: ${{ inputs.registry-username }}
           registry-password: ${{ secrets.registry-password }}
+
+  post-build-commands:
+    name: Post-Build Steps
+    needs: image-merge
+    runs-on: ${{ inputs.runner-default }}
+    strategy:
+      matrix:
+        post-steps:
+          - if: ${{ inputs.test-command != '' }}
+            name: Test
+            command: ${{ inputs.test-command }}
+            artifact-name: ${{ inputs.test-artifact-name }}
+            artifact-path: ${{ inputs.test-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-artifact-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-artifact-retention-days }}
+          - if: ${{ inputs.test-unit-command != '' }}
+            name: Unit Test
+            command: ${{ inputs.test-unit-command }}
+            artifact-name: ${{ inputs.test-unit-artifact-name }}
+            artifact-path: ${{ inputs.test-unit-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-unit-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-unit-artifact-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-unit-artifact-retention-days }}
+          - if: ${{ inputs.test-integration-command != '' }}
+            name: Integration Test
+            command: ${{ inputs.test-integration-command }}
+            artifact-name: ${{ inputs.test-integration-artifact-name }}
+            artifact-path: ${{ inputs.test-integration-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-integration-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-integration-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-integration-artifact-retention-days }}
+          - if: ${{ inputs.test-e2e-command != '' }}
+            name: E2E Test
+            command: ${{ inputs.test-e2e-command }}
+            artifact-name: ${{ inputs.test-e2e-artifact-name }}
+            artifact-path: ${{ inputs.test-e2e-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-e2e-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-e2e-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-e2e-artifact-retention-days }}
+          - if: ${{ inputs.test-converage-command != '' }}
+            name: Test Coverage
+            command: ${{ inputs.test-coverage-command }}
+            artifact-name: ${{ inputs.test-coverage-artifact-name }}
+            artifact-path: ${{ inputs.test-coverage-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-coverage-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-coverage-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-coverage-artifact-retention-days }}
+          - if: ${{ inputs.test-checks-command != '' }}
+            name: Test Checks
+            command: ${{ inputs.test-checks-command }}
+            artifact-name: ${{ inputs.test-checks-artifact-name }}
+            artifact-path: ${{ inputs.test-checks-artifact-path }}
+            artifact-overwrite: ${{ inputs.test-checks-artifact-overwrite }}
+            artifact-if-no-files-found: ${{ inputs.test-checks-if-no-files-found }}
+            artifact-retention-days: ${{ inputs.test-checks-artifact-retention-days }}
+    steps:
+      - name: Download updated source
+        uses: eviden-actions/download-artifact@v2
+        with:
+          name: updated-source
+
+      - name: ${{ matrix.post-steps.name }}
+        id: command
+        uses: ./.github/actions/command
+        with:
+          command: ${{ matrix.post-steps.command }}
+          artifact-name: ${{ matrix.post-steps.artifact-name }}
+          artifact-path: ${{ matrix.post-steps.artifact-path }}
+          artifact-overwrite: ${{ matrix.post-steps.artifact-overwrite }}
+          artifact-if-no-files-found: ${{ matrix.post-steps.artifact-if-no-files-found }}
+          artifact-retention-days: ${{ matrix.post-steps.artifact-retention-days }}
