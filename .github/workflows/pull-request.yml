@@ -15,7 +15,7 @@ permissions:
 jobs:
   pr-build:
     uses: ./.github/workflows/pull-request-callable.yml
-    name: Build Image (Bake)
+    name: PR
     with:
       registry-image: ''
       bake-target: build

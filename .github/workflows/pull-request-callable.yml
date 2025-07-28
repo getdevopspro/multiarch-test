@@ -171,6 +171,7 @@ jobs:
         with:
           name: updated-source
           path: .
+          overwrite: true
           if-no-files-found: error
           retention-days: 1
           include-hidden-files: true
@@ -215,6 +216,7 @@ jobs:
         with:
           name: updated-source
           path: .
+          overwrite: true
           if-no-files-found: error
           retention-days: 1
           include-hidden-files: true
@@ -263,6 +265,7 @@ jobs:
         with:
           name: updated-source
           path: .
+          overwrite: true
           if-no-files-found: error
           retention-days: 1
           include-hidden-files: true
