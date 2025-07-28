@@ -264,6 +264,7 @@ jobs:
     outputs:
       version: ${{ steps.set_version.outputs.version }}
       pre-steps: ${{ steps.set_pre_matrix.outputs.matrix }}
+      post-steps: ${{ steps.set_post_matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -306,18 +307,58 @@ jobs:
         id: set_pre_matrix
         shell: bash
         run: |
-          MATRIX=$(jq -cn --arg name "Lint" --arg cmd "${{ inputs.lint-command }}" \
-              '[{name: $name, command: $cmd}]')
-          if [[ -n "${{ inputs.checks-command }}" ]]; then
-            # Add checks step if command is provided
-            MATRIX=$(echo $MATRIX | jq -c --arg name "Checks" --arg cmd "${{ inputs.checks-command }}" \
+          MATRIX=[]
+          function jq_add_step {
+            MATRIX=$(echo $MATRIX | jq -c --arg name "$1" --arg cmd "$2" \
               '. + [{name: $name, command: $cmd}]')
+          }
+          jq_add_step "Lint" "${{ inputs.lint-command }}"
+          if [[ -n "${{ inputs.checks-command }}" ]]; then
+            jq_add_step "Checks" "${{ inputs.checks-command }}"
           fi
           echo "matrix=$MATRIX" >>${GITHUB_OUTPUT}
 
       - name: Show pre-steps matrix
         shell: bash
         run: echo "${{ steps.set_pre_matrix.outputs.matrix }}"
+
+      - name: Set post-steps matrix
+        id: set_post_matrix
+        shell: bash
+        run: |
+          MATRIX=[]
+          function jq_add_step {
+            MATRIX=$(echo $MATRIX | jq -c --arg name "$1" --arg cmd "$2" --arg artifact-name "$3" --arg artifact-path "$4" \
+              --arg artifact-overwrite "$5" --arg artifact-if-no-files-found "$6" --arg artifact-retention-days "$7" \
+              '. + [{name: $name, command: $cmd, artifact-name: $artifact-name, artifact-path: $artifact-path, artifact-overwrite: $artifact-overwrite, artifact-if-no-files-found: $artifact-if-no-files-found, artifact-retention-days: $artifact-retention-days}]')
+          }
+          jq_add_step "Test" "${{ inputs.test-command }}" "${{ inputs.test-artifact-name }}" "${{ inputs.test-artifact-path }}" \
+            "${{ inputs.test-artifact-overwrite }}" "${{ inputs.test-artifact-if-no-files-found }}" "${{ inputs.test-artifact-retention-days }}"
+          if [[ -n "${{ inputs.test-unit-command }}" ]]; then
+            jq_add_step "Unit Test" "${{ inputs.test-unit-command }}" "${{ inputs.test-unit-artifact-name }}" "${{ inputs.test-unit-artifact-path }}" \
+              "${{ inputs.test-unit-artifact-overwrite }}" "${{ inputs.test-unit-if-no-files-found }}" "${{ inputs.test-unit-retention-days }}"
+          fi
+          if [[ -n "${{ inputs.test-integration-command }}" ]]; then
+            jq_add_step "Integration Test" "${{ inputs.test-integration-command }}" "${{ inputs.test-integration-artifact-name }}" "${{ inputs.test-integration-artifact-path }}" \
+              "${{ inputs.test-integration-artifact-overwrite }}" "${{ inputs.test-integration-if-no-files-found }}" "${{ inputs.test-integration-retention-days }}"
+          fi
+          if [[ -n "${{ inputs.test-e2e-command }}" ]]; then
+            jq_add_step "E2E Test" "${{ inputs.test-e2e-command }}" "${{ inputs.test-e2e-artifact-name }}" "${{ inputs.test-e2e-artifact-path }}" \
+              "${{ inputs.test-e2e-artifact-overwrite }}" "${{ inputs.test-e2e-if-no-files-found }}" "${{ inputs.test-e2e-retention-days }}"
+          fi
+          if [[ -n "${{ inputs.test-coverage-command }}" ]]; then
+            jq_add_step "Test Coverage" "${{ inputs.test-coverage-command }}" "${{ inputs.test-coverage-artifact-name }}" "${{ inputs.test-coverage-artifact-path }}" \
+              "${{ inputs.test-coverage-artifact-overwrite }}" "${{ inputs.test-coverage-if-no-files-found }}" "${{ inputs.test-coverage-retention-days }}"
+          fi
+          if [[ -n "${{ inputs.test-checks-command }}" ]]; then
+            jq_add_step "Test Checks" "${{ inputs.test-checks-command }}" "${{ inputs.test-checks-artifact-name }}" "${{ inputs.test-checks-artifact-path }}" \
+              "${{ inputs.test-checks-artifact-overwrite }}" "${{ inputs.test-checks-if-no-files-found }}" "${{ inputs.test-checks-retention-days }}"
+          fi
+          echo "matrix=$MATRIX" >>${GITHUB_OUTPUT}
+
+      - name: Show post-steps matrix
+        shell: bash
+        run: echo "${{ steps.set_post_matrix.outputs.matrix }}"
 
       - name: Upload updated source
         uses: eviden-actions/upload-artifact@v2
@@ -435,55 +476,7 @@ jobs:
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
-        post-steps:
-          - if: ${{ inputs.test-command != '' }}
-            name: Test
-            command: ${{ inputs.test-command }}
-            artifact-name: ${{ inputs.test-artifact-name }}
-            artifact-path: ${{ inputs.test-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-artifact-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-artifact-retention-days }}
-          - if: ${{ inputs.test-unit-command != '' }}
-            name: Unit Test
-            command: ${{ inputs.test-unit-command }}
-            artifact-name: ${{ inputs.test-unit-artifact-name }}
-            artifact-path: ${{ inputs.test-unit-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-unit-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-unit-artifact-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-unit-artifact-retention-days }}
-          - if: ${{ inputs.test-integration-command != '' }}
-            name: Integration Test
-            command: ${{ inputs.test-integration-command }}
-            artifact-name: ${{ inputs.test-integration-artifact-name }}
-            artifact-path: ${{ inputs.test-integration-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-integration-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-integration-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-integration-artifact-retention-days }}
-          - if: ${{ inputs.test-e2e-command != '' }}
-            name: E2E Test
-            command: ${{ inputs.test-e2e-command }}
-            artifact-name: ${{ inputs.test-e2e-artifact-name }}
-            artifact-path: ${{ inputs.test-e2e-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-e2e-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-e2e-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-e2e-artifact-retention-days }}
-          - if: ${{ inputs.test-converage-command != '' }}
-            name: Test Coverage
-            command: ${{ inputs.test-coverage-command }}
-            artifact-name: ${{ inputs.test-coverage-artifact-name }}
-            artifact-path: ${{ inputs.test-coverage-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-coverage-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-coverage-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-coverage-artifact-retention-days }}
-          - if: ${{ inputs.test-checks-command != '' }}
-            name: Test Checks
-            command: ${{ inputs.test-checks-command }}
-            artifact-name: ${{ inputs.test-checks-artifact-name }}
-            artifact-path: ${{ inputs.test-checks-artifact-path }}
-            artifact-overwrite: ${{ inputs.test-checks-artifact-overwrite }}
-            artifact-if-no-files-found: ${{ inputs.test-checks-if-no-files-found }}
-            artifact-retention-days: ${{ inputs.test-checks-artifact-retention-days }}
+        post-steps: ${{ fromJson(needs.version.outputs.post-steps) }}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
