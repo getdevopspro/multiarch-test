@@ -71,13 +71,18 @@ on:
         description: 'Username for registry login'
         required: true
         type: string
-      runner-arm64:
-        description: 'Runner label for ARM64 jobs'
+      runner-default:
+        description: 'Default runner'
+        required: false
+        type: string
+        default: 'ubuntu-22.04'
+      runner-build-arm64:
+        description: 'Runner for arm64 builds'
         required: false
         type: string
         default: 'ubuntu-22.04-arm'
-      runner-default:
-        description: 'Runner label for non‑ARM jobs'
+      runner-build-default:
+        description: 'Default runner for builds'
         required: false
         type: string
         default: 'ubuntu-22.04'
@@ -442,7 +447,7 @@ jobs:
   image-build:
     name: Build Image
     needs: image-prepare
-    runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-arm64 || inputs.runner-default }}
+    runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-build-arm64 || inputs.runner-build-default }}
     strategy:
       matrix:
         platform: ${{ fromJson(needs.image-prepare.outputs.matrix) }}
