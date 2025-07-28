@@ -376,6 +376,7 @@ jobs:
   pre-steps:
     name: Pre-Build Steps
     needs: prepare
+    if: ${{ fromJson(needs.prepare.outputs.pre-step-matrix) != '[]' }}
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
@@ -477,6 +478,7 @@ jobs:
   post-steps:
     name: Post-Build Steps
     needs: image-merge
+    if: ${{ fromJson(needs.prepare.outputs.post-step-matrix) != '[]' }}
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
