@@ -315,8 +315,7 @@ jobs:
     needs: version
     runs-on: ${{ inputs.runner-default }}
     strategy:
-      matrix:
-        pre-steps: []
+      matrix: {}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
