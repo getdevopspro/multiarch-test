@@ -6,6 +6,10 @@ on:
       registry-password:
         description: 'Password or token for registry login'
         required: true
+    outputs:
+      version:
+        description: 'Detected or calculated version'
+        value: ${{ jobs.prepare.outputs.version }}
     inputs:
       previous-version:
         description: 'The strategy to detect the previous version: auto, from-tag, from-file or manual'
