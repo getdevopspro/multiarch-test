@@ -83,7 +83,7 @@ jobs:
           registry-password: ${{ secrets.registry-password }}
 
   image-merge:
-    name: Merge Image Manifest
+    name: Push Image
     needs: image-build
     runs-on: ${{ inputs.runner-default }}
     steps:
