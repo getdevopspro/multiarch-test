@@ -308,14 +308,16 @@ jobs:
         run: |
           MATRIX=$(jq -cn --arg name "Lint" --arg cmd "${{ inputs.lint-command }}" \
               '[{name: $name, command: $cmd}]')
-
           if [[ -n "${{ inputs.checks-command }}" ]]; then
             # Add checks step if command is provided
             MATRIX=$(echo $MATRIX | jq -c --arg name "Checks" --arg cmd "${{ inputs.checks-command }}" \
               '. + [{name: $name, command: $cmd}]')
           fi
-
           echo "matrix=$MATRIX" >>${GITHUB_OUTPUT}
+
+      - name: Show pre-steps matrix
+        shell: bash
+        run: echo "${{ steps.set_pre_matrix.outputs.matrix }}"
 
       - name: Upload updated source
         uses: eviden-actions/upload-artifact@v2
