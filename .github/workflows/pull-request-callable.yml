@@ -418,7 +418,7 @@ jobs:
 
   image-build:
     name: Build Image
-    needs: pre-steps
+    needs: prepare
     if: ${{ !cancelled() }}
     runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-build-arm64 || inputs.runner-build-default }}
     strategy:
