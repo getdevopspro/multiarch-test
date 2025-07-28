@@ -177,6 +177,7 @@ jobs:
 
   pre-build-commands:
     name: Pre-Build Steps
+    needs: version
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
@@ -220,6 +221,7 @@ jobs:
 
   image-prepare:
     name: Prepare Image Build
+    needs: pre-build-commands
     runs-on: ${{ inputs.runner-default }}
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
