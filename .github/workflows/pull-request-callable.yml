@@ -167,7 +167,7 @@ jobs:
         run: ${{ inputs.version-command }}
 
       - name: Upload updated source
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-source
           path: .
@@ -211,7 +211,7 @@ jobs:
         run: ${{ inputs.checks-command }}
 
       - name: Upload updated source
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-source
           path: .
@@ -259,7 +259,7 @@ jobs:
             ${{ inputs.meta-tags }}
 
       - name: Upload updated source
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: updated-source
           path: .
