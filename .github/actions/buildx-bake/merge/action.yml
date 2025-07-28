@@ -1,15 +1,17 @@
 name: "Merge & Publish Manifests"
 description: "Download digests, create manifest lists, push them, and inspect the published images."
 inputs:
-  registry-username:
-    description: 'Username for registry login'
-    required: true
-    type: string
   registry:
-    description: 'Docker registry domain'
+    description: 'The container registry'
     required: false
-    type: string
     default: 'ghcr.io'
+  registry-username:
+    description: 'The container registry username'
+    required: true
+    default: ${{ github.actor }}
+  registry-password:
+    description: 'The container registry password'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -31,7 +33,7 @@ runs:
       with:
         registry: ${{ inputs.registry }}
         username: ${{ inputs.registry-username }}
-        password: ${{ secrets.registry-password }}
+        password: ${{ inputs.registry-password }}
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3

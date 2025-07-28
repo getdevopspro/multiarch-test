@@ -6,23 +6,21 @@ inputs:
     required: false
     type: string
     default: 'build'
+  registry:
+    description: 'The container registry'
+    required: false
+    default: 'ghcr.io'
+  registry-username:
+    description: 'The container registry username'
+    required: true
+    default: ${{ github.actor }}
+  registry-password:
+    description: 'The container registry password'
+    required: true
   registry-image:
     description: 'Container registry + image prefix'
     required: false
     type: string
-  registry-username:
-    description: 'Username for registry login'
-    required: true
-    type: string
-  registry-password:
-    description: 'Password or token for registry login'
-    required: true
-    type: string
-  registry:
-    description: 'Docker registry domain'
-    required: false
-    type: string
-    default: 'ghcr.io'
 runs:
   using: "composite"
   steps:
