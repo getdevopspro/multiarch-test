@@ -43,18 +43,18 @@ runs:
       run: |
         JSON_FILE=${{ runner.temp }}/digests/all.json
         jq -s '
-          reduce .[] as $doc ({}; reduce ($doc|to_entries[]) as $kv (
-            .;
-            .[$kv.key].name    = $kv.value.name
-            | .[$kv.key].digests = ((.[$kv.key].digests // []) + $kv.value.digests)
-          ))
-        ' ${{ runner.temp }}/digests/*.json > ${JSON_FILE}
-
+          reduce .[] as $doc ({};
+            reduce ($doc|to_entries[]) as $kv (
+              .;
+              .[$kv.key].name    = $kv.value.name
+              | .[$kv.key].digests = ((.[$kv.key].digests // []) + $kv.value.digests)
+            )
+          )
+        ' ${{ runner.temp }}/digests/*.json > $JSON_FILE
         for key in $(jq -r 'keys[]' "$JSON_FILE"); do
           image_name=$(jq -r ".\"$key\".name" "$JSON_FILE")
           image_digests=$(jq -r ".\"$key\".digests[]" "$JSON_FILE" | while read -r digest; do echo "${image_name}@${digest} "; done)
-          image_tags=$(jq -cr '(.target."docker-metadata-action".tags // []) |
-            map("-t ${image_name}:" + sub(".*:"; "")) | join(" ")' ${{ runner.temp }}/bake-meta.json)
+          image_tags=$(jq -cr '(.target."docker-metadata-action".tags // [] ) | map("-t '${image_name}':" + sub(".*:"; "")) | join(" ")' ${{ runner.temp }}/bake-meta.json)
           docker buildx imagetools create \
             ${image_tags} \
             ${image_digests}
