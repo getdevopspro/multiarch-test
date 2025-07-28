@@ -167,14 +167,13 @@ jobs:
         run: ${{ inputs.version-command }}
 
       - name: Upload updated source
-        uses: actions/upload-artifact@v4
+        uses: eviden-actions/upload-artifact@v2
         with:
           name: updated-source
           path: .
           overwrite: true
           if-no-files-found: error
           retention-days: 1
-          include-hidden-files: true
 
   pre-build-commands:
     name: Pre-Build Steps
@@ -189,7 +188,7 @@ jobs:
             if: ${{ inputs.checks-command != '' }}
     steps:
       - name: Download updated source
-        uses: actions/download-artifact@v4
+        uses: eviden-actions/download-artifact@v2
         with:
           name: updated-source
 
@@ -229,7 +228,7 @@ jobs:
       matrix: ${{ steps.prepare.outputs.matrix }}
     steps:
       - name: Download updated source
-        uses: actions/download-artifact@v4
+        uses: eviden-actions/download-artifact@v2
         with:
           name: updated-source
 
@@ -279,7 +278,7 @@ jobs:
         platform: ${{ fromJson(needs.image-prepare.outputs.matrix) }}
     steps:
       - name: Download updated source
-        uses: actions/download-artifact@v4
+        uses: eviden-actions/download-artifact@v2
         with:
           name: updated-source
 
@@ -298,7 +297,7 @@ jobs:
     runs-on: ${{ inputs.runner-default }}
     steps:
       - name: Download updated source
-        uses: actions/download-artifact@v4
+        uses: eviden-actions/download-artifact@v2
         with:
           name: updated-source
 
