@@ -96,10 +96,6 @@ on:
         required: false
         default: false
         type: boolean
-      version-command:
-        description: 'The command to run for setting the version'
-        required: false
-        type: string
       prepare-command:
         description: 'The command to run for preparing the build'
         required: false
@@ -270,6 +266,7 @@ jobs:
       version: ${{ steps.set_version.outputs.version }}
       pre-step-matrix: ${{ steps.set_pre_matrix.outputs.matrix }}
       post-step-matrix: ${{ steps.set_post_matrix.outputs.matrix }}
+      image-build-matrix: ${{ steps.prepare_image.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -301,12 +298,6 @@ jobs:
         uses: extractions/setup-just@v2
         with:
           just-version: ${{ inputs.just-version }}
-
-      - name: Run version command
-        if: inputs.version-command != ''
-        id: version_command
-        shell: bash
-        run: ${{ inputs.version-command }}
 
       - name: Set pre-steps matrix
         id: set_pre_matrix
@@ -369,6 +360,27 @@ jobs:
         shell: bash
         run: echo "${{ steps.set_post_matrix.outputs.matrix }}"
 
+      - name: Prepare matrix & metadata
+        id: prepare_image
+        uses: ./.github/actions/buildx-bake/prepare
+        with:
+          bake-target: ${{ inputs.bake-target }}
+          registry-image: ${{ inputs.registry-image }}
+          meta-labels:
+            ${{ inputs.meta-labels }}
+          meta-tags: |
+            type=edge,branch=$repo.default_branch,event=push
+            type=sha,event=push
+            type=ref,event=branch
+            type=ref,event=pr
+            ${{ inputs.meta-tags }}
+
+      - name: Run prepare command
+        if: inputs.prepare-command != ''
+        id: prepare_command
+        shell: bash
+        run: ${{ inputs.prepare-command }}
+
       - name: Upload updated source
         uses: eviden-actions/upload-artifact@v2
         with:
@@ -404,53 +416,14 @@ jobs:
         with:
           command: ${{ matrix.pre-steps.command }}
 
-  image-prepare:
-    name: Prepare Image Build
-    needs: pre-steps
-    if: ${{ !cancelled() }}
-    runs-on: ${{ inputs.runner-default }}
-    outputs:
-      matrix: ${{ steps.prepare.outputs.matrix }}
-    steps:
-      - name: Download updated source
-        uses: eviden-actions/download-artifact@v2
-        with:
-          name: updated-source
-
-      - name: Install just
-        if: inputs.just-install
-        uses: extractions/setup-just@v2
-        with:
-          just-version: ${{ inputs.just-version }}
-
-      - name: Run prepare command
-        if: inputs.prepare-command != ''
-        id: prepare_command
-        shell: bash
-        run: ${{ inputs.prepare-command }}
-
-      - name: Prepare matrix & metadata
-        id: prepare
-        uses: ./.github/actions/buildx-bake/prepare
-        with:
-          bake-target: ${{ inputs.bake-target }}
-          registry-image: ${{ inputs.registry-image }}
-          meta-labels:
-            ${{ inputs.meta-labels }}
-          meta-tags: |
-            type=edge,branch=$repo.default_branch,event=push
-            type=sha,event=push
-            type=ref,event=branch
-            type=ref,event=pr
-            ${{ inputs.meta-tags }}
-
   image-build:
     name: Build Image
     needs: image-prepare
+    if: ${{ !cancelled() }}
     runs-on: ${{ matrix.platform == 'linux/arm64' && inputs.runner-build-arm64 || inputs.runner-build-default }}
     strategy:
       matrix:
-        platform: ${{ fromJson(needs.image-prepare.outputs.matrix) }}
+        platform: ${{ fromJson(needs.prepare.outputs.image-build-matrix) }}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
