@@ -36,10 +36,6 @@ on:
         type: string
         default: 'ghcr.io'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
   packages: write
