@@ -26,6 +26,7 @@ runs:
           >> $GITHUB_OUTPUT
 
     - name: Show matrix
+      shell: bash
       run: echo ${{ steps.platforms.outputs.matrix }}
 
     - name: Docker metadata
