@@ -29,7 +29,7 @@ runs:
       run: |
         echo "matrix=$(docker buildx bake ${{ inputs.bake-target }} \
           --print | jq -cr '.target | to_entries | map(.value.platforms[]) | unique')" \
-          >> $GITHUB_OUTPUT
+          >>${GITHUB_OUTPUT}
 
     - name: Show matrix
       shell: bash
