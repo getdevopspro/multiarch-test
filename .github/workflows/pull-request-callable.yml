@@ -210,16 +210,6 @@ jobs:
         shell: bash
         run: ${{ inputs.checks-command }}
 
-      - name: Upload updated source
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-source
-          path: .
-          overwrite: true
-          if-no-files-found: error
-          retention-days: 1
-          include-hidden-files: true
-
   image-prepare:
     name: Prepare Image Build
     needs: pre-build-commands
@@ -258,16 +248,6 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             ${{ inputs.meta-tags }}
-
-      - name: Upload updated source
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-source
-          path: .
-          overwrite: true
-          if-no-files-found: error
-          retention-days: 1
-          include-hidden-files: true
 
   image-build:
     name: Build Image
