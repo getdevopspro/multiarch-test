@@ -316,11 +316,7 @@ jobs:
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
-        pre-steps:
-          - command: lint
-            if: ${{ inputs.lint-command != '' }}
-          - command: checks
-            if: ${{ inputs.checks-command != '' }}
+        pre-steps: []
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
