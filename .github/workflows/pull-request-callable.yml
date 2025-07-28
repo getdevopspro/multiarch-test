@@ -420,19 +420,6 @@ jobs:
         with:
           command: ${{ matrix.pre-steps.command }}
 
-  temp:
-    name: Temporary Steps
-    needs: prepare
-    runs-on: ${{ inputs.runner-default }}
-    steps:
-      - name: Show Pre-Build Matrix
-        shell: bash
-        run: echo "${{ needs.prepare.outputs.pre-step-matrix }}"
-
-      - name: Show Image Build Matrix
-        shell: bash
-        run: echo "${{ needs.prepare.outputs.image-platform-matrix }}"
-
   image-build:
     name: Build Image
     needs:
@@ -461,6 +448,7 @@ jobs:
   image-merge:
     name: Push Image
     needs: image-build
+    if: ${{ !cancelled() }}
     runs-on: ${{ inputs.runner-default }}
     steps:
       - name: Download updated source
