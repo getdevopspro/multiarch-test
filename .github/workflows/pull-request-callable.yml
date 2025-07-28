@@ -402,6 +402,7 @@ jobs:
   image-prepare:
     name: Prepare Image Build
     needs: pre-steps
+    if: ${{ !cancelled() }}
     runs-on: ${{ inputs.runner-default }}
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
