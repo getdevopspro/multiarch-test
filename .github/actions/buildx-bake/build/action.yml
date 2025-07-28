@@ -21,6 +21,11 @@ inputs:
     description: 'Container registry + image prefix'
     required: false
     type: string
+  free-disk-space:
+    description: 'Free disk space before build'
+    required: false
+    default: false
+    type: boolean
 runs:
   using: "composite"
   steps:
@@ -48,6 +53,12 @@ runs:
 
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@v1.3.1
+      if: ${{ inputs.free-disk-space == true }}
+      with:
+        tool-cache: true
 
     - name: Build & push images
       id: bake
