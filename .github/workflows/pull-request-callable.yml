@@ -263,6 +263,7 @@ jobs:
     runs-on: ${{ inputs.runner-default }}
     outputs:
       version: ${{ steps.set_version.outputs.version }}
+      pre-steps: ${{ steps.set_pre_matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -301,6 +302,21 @@ jobs:
         shell: bash
         run: ${{ inputs.version-command }}
 
+      - name: Set pre-build-commands matrix
+        id: set_pre_matrix
+        shell: bash
+        run: |
+          MATRIX=$(jq -n --arg name "Lint" --arg cmd "${{ inputs.lint-command }}" \
+              '[{name: $name, command: $cmd}]')
+
+          if [[ -n "${{ inputs.checks-command }}" ]]; then
+            # Add checks step if command is provided
+            MATRIX=$(echo $MATRIX | jq --arg name "Checks" --arg cmd "${{ inputs.checks-command }}" \
+              '. + [{name: $name, command: $cmd}]')
+          fi
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
       - name: Upload updated source
         uses: eviden-actions/upload-artifact@v2
         with:
@@ -315,7 +331,8 @@ jobs:
     needs: version
     runs-on: ${{ inputs.runner-default }}
     strategy:
-      matrix: {}
+      matrix:
+        pre-steps: ${{ fromJson(needs.version.outputs.pre_steps) }}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
@@ -328,17 +345,11 @@ jobs:
         with:
           just-version: ${{ inputs.just-version }}
 
-      - name: Run lint command
-        if: inputs.lint-command != '' && matrix.pre-steps.command == 'lint'
-        id: lint_command
-        shell: bash
-        run: ${{ inputs.lint-command }}
-
-      - name: Run checks command
-        if: inputs.checks-command != '' && matrix.pre-steps.command == 'checks'
-        id: checks_command
-        shell: bash
-        run: ${{ inputs.checks-command }}
+      - name: ${{ matrix.pre-steps.name }}
+        id: command
+        uses: ./.github/actions/command
+        with:
+          command: ${{ matrix.pre-steps.command }}
 
   image-prepare:
     name: Prepare Image Build
@@ -476,6 +487,12 @@ jobs:
         uses: eviden-actions/download-artifact@v2
         with:
           name: updated-source
+
+      - name: Install just
+        if: inputs.just-install
+        uses: extractions/setup-just@v2
+        with:
+          just-version: ${{ inputs.just-version }}
 
       - name: ${{ matrix.post-steps.name }}
         id: command
