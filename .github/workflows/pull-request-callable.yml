@@ -258,13 +258,13 @@ permissions:
   packages: write
 
 jobs:
-  version:
-    name: Versioning
+  prepare:
+    name: Prepare Steps
     runs-on: ${{ inputs.runner-default }}
     outputs:
       version: ${{ steps.set_version.outputs.version }}
       pre-step-matrix: ${{ steps.set_pre_matrix.outputs.matrix }}
-      post-steps-matrix: ${{ steps.set_post_matrix.outputs.matrix }}
+      post-step-matrix: ${{ steps.set_post_matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -312,7 +312,9 @@ jobs:
             MATRIX=$(echo $MATRIX | jq -c --arg name "$1" --arg cmd "$2" \
               '. + [{"name": $name, "command": $cmd}]')
           }
-          jq_add_step "Lint" "${{ inputs.lint-command }}"
+          if [[ -n "${{ inputs.lint-command }}" ]]; then
+            jq_add_step "Lint" "${{ inputs.lint-command }}"
+          fi
           if [[ -n "${{ inputs.checks-command }}" ]]; then
             jq_add_step "Checks" "${{ inputs.checks-command }}"
           fi
@@ -332,8 +334,10 @@ jobs:
               --arg artifact_overwrite "$5" --arg artifact_if_no_files_found "$6" --arg artifact_retention_days "$7" \
               '. + [{"name": $name, "command": $cmd, "artifact-name": $artifact_name, "artifact-path": $artifact_path, "artifact-overwrite": $artifact_overwrite, "artifact-if-no-files-found": $artifact_if_no_files_found, "artifact-retention-days": $artifact_retention_days}]')
           }
-          jq_add_step "Test" "${{ inputs.test-command }}" "${{ inputs.test-artifact-name }}" "${{ inputs.test-artifact-path }}" \
-            "${{ inputs.test-artifact-overwrite }}" "${{ inputs.test-artifact-if-no-files-found }}" "${{ inputs.test-artifact-retention-days }}"
+          if [[ -n "${{ inputs.build-command }}" ]]; then
+            jq_add_step "Build" "${{ inputs.build-command }}" "${{ inputs.build-artifact-name }}" "${{ inputs.build-artifact-path }}" \
+              "${{ inputs.build-artifact-overwrite }}" "${{ inputs.build-if-no-files-found }}" "${{ inputs.build-retention-days }}"
+          fi
           if [[ -n "${{ inputs.test-unit-command }}" ]]; then
             jq_add_step "Unit Test" "${{ inputs.test-unit-command }}" "${{ inputs.test-unit-artifact-name }}" "${{ inputs.test-unit-artifact-path }}" \
               "${{ inputs.test-unit-artifact-overwrite }}" "${{ inputs.test-unit-if-no-files-found }}" "${{ inputs.test-unit-retention-days }}"
@@ -371,11 +375,11 @@ jobs:
 
   pre-steps:
     name: Pre-Build Steps
-    needs: version
+    needs: prepare
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
-        pre-steps: ${{ fromJson(needs.version.outputs.pre-steps-matrix) }}
+        pre-steps: ${{ fromJson(needs.prepare.outputs.pre-step-matrix) }}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
@@ -476,7 +480,7 @@ jobs:
     runs-on: ${{ inputs.runner-default }}
     strategy:
       matrix:
-        post-steps: ${{ fromJson(needs.version.outputs.post-steps-matrix) }}
+        post-steps: ${{ fromJson(needs.prepare.outputs.post-step-matrix) }}
     steps:
       - name: Download updated source
         uses: eviden-actions/download-artifact@v2
