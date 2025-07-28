@@ -50,7 +50,7 @@ jobs:
     outputs:
       matrix: ${{ steps.prepare.outputs.matrix }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -70,10 +70,13 @@ jobs:
       matrix:
         platform: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - uses: ./.github/actions/build
         with:
           bake-target: ${{ inputs.bake-target }}
-          registry-image: ${{ inputs.registry }}
+          registry: ${{ inputs.registry }}
+          registry-image: ${{ inputs.registry-image }}
           registry-username: ${{ inputs.registry-username }}
           registry-password: ${{ secrets.registry-password }}
 
