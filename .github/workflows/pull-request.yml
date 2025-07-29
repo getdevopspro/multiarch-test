@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.job }}
   cancel-in-progress: true
 
 permissions:
@@ -13,12 +13,39 @@ permissions:
   packages: write
 
 jobs:
-  pull-request:
-    uses: getdevopspro/github-actions/.github/workflows/pull-request.yml@v0.2.22
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
-    with:
-      version-justfile: justfile
-      just-install: true
-      registry-username: ${{ github.actor }}
-      test-command: just unit-test system-test
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        id: test
+        shell: bash
+        run: |
+          MATRIX=[]
+          function jq_add_step {
+            MATRIX=$(echo $MATRIX | jq -c --arg name "$1" --arg cmd "$2" \
+              '. + [{"name": $name, "command": $cmd}]')
+          }
+          jq_add_step "Lint" 'ls ${command}'
+
+          echo "matrix=$MATRIX" >>"${GITHUB_OUTPUT}"
+
+      - name: show matrix
+        run: |
+          echo "MATRIX: ${{ steps.test.outputs.matrix }}"
+          echo "MATRIX JSON: ${{ toJson(steps.test.outputs.matrix) }}"
+      # - name: test
+      #   id: command
+      #   uses: getdevopspro/github-actions/command@v0.3.9
+      #   with:
+      #     command: |
+      #       docker_image="ghcr.io/${{ github.repository }}:${{ github.event.pull_request.head.sha }}"
+      #       echo "docker run --rm $$${docker_image,,} -- just system-test"
+  # pr-build:
+  #   uses: ./.github/workflows/pull-request-callable.yml
+  #   name: PR
+  #   with:
+  #     registry-image: ''
+  #     bake-target: build
+  #     registry-username: ${{ github.actor }}
+  #   secrets:
+  #     registry-password: ${{ secrets.GITHUB_TOKEN }}
