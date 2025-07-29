@@ -25,7 +25,7 @@ jobs:
             MATRIX=$(echo $MATRIX | jq -c --arg name "$1" --arg cmd "$2" \
               '. + [{"name": $name, "command": $cmd}]')
           }
-          jq_add_step "Lint" "ls ${command}"
+          jq_add_step "Lint" 'ls ${command}'
 
           echo "matrix=$MATRIX" >>"${GITHUB_OUTPUT}"
 
