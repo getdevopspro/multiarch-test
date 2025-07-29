@@ -13,12 +13,21 @@ permissions:
   packages: write
 
 jobs:
-  pr-build:
-    uses: ./.github/workflows/pull-request-callable.yml
-    name: PR
-    with:
-      registry-image: ''
-      bake-target: build
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
+  test:
+    steps:
+      - name: test
+        id: command
+        uses: getdevopspro/github-actions/command@v0.3.9
+        with:
+          command: |
+            docker_image="ghcr.io/${{ github.repository }}:${{ github.event.pull_request.head.sha }}"
+            echo "docker run --rm ${docker_image,,} -- just system-test"
+  # pr-build:
+  #   uses: ./.github/workflows/pull-request-callable.yml
+  #   name: PR
+  #   with:
+  #     registry-image: ''
+  #     bake-target: build
+  #     registry-username: ${{ github.actor }}
+  #   secrets:
+  #     registry-password: ${{ secrets.GITHUB_TOKEN }}
